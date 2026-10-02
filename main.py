@@ -8,7 +8,8 @@ from pathlib import Path
 
 app = Flask(__name__)
 
-OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
+# More reliable way to get the key
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY") or os.getenv("OPENROUTER_API_KEY")
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 DB_DIR = Path("dbhistory")
@@ -55,7 +56,7 @@ def process_file_blocks(text: str) -> str:
 
 def call_openrouter(messages, model="openrouter/auto"):
     if not OPENROUTER_API_KEY:
-        raise Exception("OPENROUTER_API_KEY is not set")
+        raise Exception("OPENROUTER_API_KEY environment variable is missing")
 
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
@@ -215,7 +216,4 @@ def clear_history():
 
 @app.route("/")
 def home():
-    return jsonify({
-        "status": "NetErrror AI is online",
-        "endpoints": ["/chat", "/admin_send", "/get_history", "/clear"]
-    })
+    return "OK", 200
