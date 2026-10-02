@@ -54,7 +54,7 @@ def process_file_blocks(text: str) -> str:
 
     return text
 
-def call_openrouter(messages, model="deepseek/deepseek-v3.1-terminus"):
+def call_openrouter(messages, model="deepseek/deepseek-chat-v3.1"):
     if not OPENROUTER_API_KEY:
         raise Exception("OPENROUTER_API_KEY environment variable is missing")
 
