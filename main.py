@@ -147,7 +147,33 @@ def get_history():
         return jsonify({"error": "session_id required"}), 400
 
     messages = load_history(session_id)
-    return jsonify({"history": messages, "count": len(messages), "session_id": session_id})
+    return jsonify({
+        "history": messages,
+        "count": len(messages),
+        "session_id": session_id
+    })
+
+@app.route("/get_all_history", methods=["GET", "POST"])
+def get_all_history():
+    """Returns history from ALL sessions combined"""
+    all_chats = {}
+    total_messages = 0
+
+    for file in DB_DIR.glob("*.json"):
+        session_id = file.stem
+        try:
+            with open(file, "r", encoding="utf-8") as f:
+                messages = json.load(f)
+                all_chats[session_id] = messages
+                total_messages += len(messages)
+        except Exception:
+            continue
+
+    return jsonify({
+        "sessions": all_chats,
+        "total_sessions": len(all_chats),
+        "total_messages": total_messages
+    })
 
 @app.route("/clear", methods=["POST"])
 def clear_history():
@@ -160,6 +186,15 @@ def clear_history():
     if path.exists():
         path.unlink()
     return jsonify({"status": "cleared", "session_id": session_id})
+
+@app.route("/clear_all", methods=["POST"])
+def clear_all_history():
+    """Deletes ALL chat sessions"""
+    count = 0
+    for file in DB_DIR.glob("*.json"):
+        file.unlink()
+        count += 1
+    return jsonify({"status": "all cleared", "deleted_sessions": count})
 
 @app.route("/")
 def home():
