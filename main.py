@@ -11,6 +11,9 @@ app = Flask(__name__)
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY") or os.getenv("OPENROUTER_API_KEY")
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
+# Default model: DeepSeek V4.1 Flash (low cost version). Override with MODEL env var on Railway.
+DEFAULT_MODEL = os.environ.get("MODEL") or os.getenv("MODEL") or "deepseek/deepseek-v4.1-flash"
+
 DB_DIR = Path("dbhistory")
 DB_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -58,7 +61,9 @@ def process_file_blocks(text: str) -> str:
 
     return text
 
-def call_openrouter(messages, model="openrouter/auto"):
+def call_openrouter(messages, model=None):
+    if model is None:
+        model = DEFAULT_MODEL
     if not OPENROUTER_API_KEY:
         raise Exception("OPENROUTER_API_KEY environment variable is missing")
 
@@ -83,7 +88,7 @@ def chat():
     data = request.get_json(silent=True) or {}
     user_message = data.get("message", "").strip()
     session_id = data.get("session_id", "").strip()
-    model = data.get("model", "openrouter/auto")
+    model = data.get("model") or DEFAULT_MODEL
 
     if not user_message:
         return jsonify({"error": "No message provided"}), 400
